@@ -1,0 +1,27 @@
+stages:
+  - name: "Initial Data Quality Check"
+    type: "dq"
+    rules:
+      - id: "rule_1"
+        type: "check_not_null"
+        column: "email"
+      - id: "rule_2"
+        type: "check_regex"
+        column: "email"
+        pattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+
+  - name: "Standardize Email"
+    type: "cleanse"
+    rules:
+      - type: "clean_trim"
+        column: "email"
+      - type: "clean_lowercase"
+        column: "email"
+
+  - name: "Final Data Quality Check"
+    type: "dq"
+    rules:
+      - id: "rule_3"
+        type: "check_regex"
+        column: "email"
+        pattern: "^[a-z0-9_.+-]+@[a-z0-9-]+\\.[a-z0-9-.]+$"

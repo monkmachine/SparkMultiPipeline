@@ -1,0 +1,48 @@
+stages:
+  - name: "Ingestion Quality"
+    type: "dq"
+    rules:
+      - id: "dq_email_not_null"
+        type: "check_not_null"
+        column: "email"
+      - id: "dq_date_format"
+        type: "check_regex"
+        column: "signup_date"
+        pattern: "^\\d{4}-\\d{2}-\\d{2}$" # YYYY-MM-DD
+
+  - name: "Standardization"
+    type: "cleanse"
+    rules:
+      - type: "clean_trim"
+        column: "name"
+      - type: "clean_trim"
+        column: "email"
+      - type: "clean_lowercase"
+        column: "email"
+      - type: "clean_lowercase" # Assume country codes should be uppercase but we only have lower function, let's stick to lower for now for consistency
+        column: "country"
+
+  - name: "Business Logic Verification"
+    type: "dq"
+    rules:
+      - id: "dq_age_legal"
+        type: "check_min"
+        column: "age"
+        value: 18
+      - id: "dq_age_max"
+        type: "check_max"
+        column: "age"
+        value: 120
+      - id: "dq_country_valid"
+        type: "check_in_set"
+        column: "country"
+        values: ["usa", "uk", "ca", "au", "de"]
+      - id: "dq_email_valid"
+        type: "check_regex"
+        column: "email"
+        pattern: "^[a-z0-9_.+-]+@[a-z0-9-]+\\.[a-z0-9-.]+$"
+      - id: "dq_name_len"
+        type: "check_length"
+        column: "name"
+        min_len: 2
+        max_len: 50
