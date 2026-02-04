@@ -1,0 +1,25 @@
+stages:
+- name: Auto-Generated DQ for users
+  type: dq
+  rules:
+  - id: auto_nn_users_id
+    type: check_not_null
+    column: id
+  - id: auto_nn_users_username
+    type: check_not_null
+    column: username
+  - id: auto_len_users_username
+    type: check_length
+    column: username
+    min_len: 0
+    max_len: 50
+  - id: auto_len_users_email
+    type: check_length
+    column: email
+    min_len: 0
+    max_len: 100
+  - id: auto_len_users_country_code
+    type: check_length
+    column: country_code
+    min_len: 0
+    max_len: 2
