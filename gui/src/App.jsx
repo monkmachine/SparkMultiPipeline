@@ -12,54 +12,123 @@ import ReactFlow, {
   BackgroundVariant
 } from 'reactflow';
 import yaml from 'js-yaml';
+import { Settings, Trash2, Shield, Sparkles, Database } from 'lucide-react';
 
 // --- Custom Nodes ---
 
-// Custom Group Node with Handles to ensure connections are visible
-const StageGroupNode = ({ data, style }) => {
-  return (
-    <div style={{ ...style, position: 'relative' }}>
-      {/* Input Handle */}
-      <Handle type="target" position={Position.Left} style={{ background: '#555', width: 10, height: 10 }} />
+// ChartDB-style Table Node
+const StageTableNode = ({ data }) => {
+  const isDq = data.type === 'dq';
+  const headerColor = isDq ? '#3b82f6' : '#10b981';
+  const headerBg = isDq ? 'linear-gradient(to right, #3b82f6, #2563eb)' : 'linear-gradient(to right, #10b981, #059669)';
+  const Icon = isDq ? Shield : Sparkles;
 
+  return (
+    <div style={{
+      background: 'white',
+      borderRadius: '8px',
+      minWidth: '280px',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+      border: '1px solid #e5e7eb',
+      overflow: 'hidden',
+      fontFamily: "'Inter', sans-serif"
+    }}>
+      {/* Input Handle */}
+      <Handle type="target" position={Position.Left} style={{ background: '#64748b', width: 10, height: 10, border: '2px solid white' }} />
+
+      {/* Header */}
       <div style={{
-        padding: '10px',
-        fontWeight: 'bold',
-        borderBottom: '1px solid rgba(0,0,0,0.1)',
-        marginBottom: '10px',
-        color: '#444'
+        background: headerBg,
+        padding: '10px 12px',
+        color: 'white',
+        fontWeight: '600',
+        fontSize: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
       }}>
-        {data.label}
+        <Icon size={16} />
+        <span>{data.label}</span>
+      </div>
+
+      {/* Body (List of Rules) */}
+      <div style={{ padding: '4px 0' }}>
+        {data.rules && data.rules.length > 0 ? (
+          data.rules.map((rule, idx) => (
+            <div key={idx} style={{
+              padding: '8px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              borderBottom: idx === data.rules.length - 1 ? 'none' : '1px solid #f3f4f6',
+              fontSize: '13px',
+              color: '#334155',
+              cursor: 'pointer',
+              transition: 'background 0.1s'
+            }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: '500' }}>{rule.type}</span>
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>{rule.id || '#'}</span>
+              </div>
+              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#cbd5e1' }}></div>
+                {rule.column}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div style={{ padding: '12px', color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' }}>
+            No rules configured
+          </div>
+        )}
       </div>
 
       {/* Output Handle */}
-      <Handle type="source" position={Position.Right} style={{ background: '#555', width: 10, height: 10 }} />
+      <Handle type="source" position={Position.Right} style={{ background: '#64748b', width: 10, height: 10, border: '2px solid white' }} />
     </div>
   );
 };
 
+// Simple Input Node
+const InputSourceNode = ({ data }) => {
+  return (
+    <div style={{
+      background: 'white',
+      borderRadius: '8px',
+      padding: '12px',
+      border: '1px solid #e5e7eb',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+      minWidth: '180px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px'
+    }}>
+      <div style={{
+        background: '#f1f5f9',
+        padding: '8px',
+        borderRadius: '6px',
+        color: '#475569'
+      }}>
+        <Database size={20} />
+      </div>
+      <div>
+        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>SOURCE</div>
+        <div style={{ fontSize: '14px', fontWeight: '600', color: '#1e293b' }}>{data.label}</div>
+      </div>
+      <Handle type="source" position={Position.Right} style={{ background: '#64748b', width: 10, height: 10, border: '2px solid white' }} />
+    </div>
+  )
+}
 
 // Initial state
 const initialNodes = [
   {
     id: 'input_node',
-    type: 'input',
-    data: { label: 'Input Source' },
-    position: { x: 50, y: 300 },
-    style: {
-      background: '#fff',
-      border: '1px solid #777',
-      borderRadius: '50%',
-      width: 80,
-      height: 80,
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontWeight: 'bold',
-      fontSize: '10px',
-      textAlign: 'center',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-    }
+    type: 'inputSource', // Custom
+    data: { label: 'customers.csv' },
+    position: { x: 50, y: 300 }
   }
 ];
 
@@ -75,9 +144,12 @@ const DnDApp = () => {
   const [showImport, setShowImport] = useState(false);
 
   // Register custom node types
-  const nodeTypes = useMemo(() => ({ stageGroup: StageGroupNode }), []);
+  const nodeTypes = useMemo(() => ({
+    stageTable: StageTableNode,
+    inputSource: InputSourceNode
+  }), []);
 
-  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
+  const onConnect = useCallback((params) => setEdges((eds) => addEdge({ ...params, type: 'smoothstep', animated: true, style: { stroke: '#94a3b8', strokeWidth: 2 } }, eds)), []);
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -95,22 +167,15 @@ const DnDApp = () => {
         y: event.clientY,
       });
 
-      let data = { label: `${type}` };
-      if (type === 'DQ: Not Null') {
-        data = { label: 'DQ: Not Null', ruleType: 'check_not_null', ruleId: `rule_${id}` };
-      } else if (type === 'DQ: Regex') {
-        data = { label: 'DQ: Regex Check', ruleType: 'check_regex', ruleId: `rule_${id}` };
-      } else if (type === 'Cleanse: Trim') {
-        data = { label: 'Cleanse: Trim', ruleType: 'clean_trim' };
-      } else if (type === 'Cleanse: Lower') {
-        data = { label: 'Cleanse: Lowercase', ruleType: 'clean_lowercase' };
-      }
+      // For POC: Dropping interaction is simplified. 
+      // Ideally, dropping a Rule on a StageTable should add it to that Stage.
+      // Here we just spawn a generic node to show we can still drag.
 
       const newNode = {
         id: getId(),
         type: 'default',
         position,
-        data: data,
+        data: { label: type },
       };
 
       setNodes((nds) => nds.concat(newNode));
@@ -124,33 +189,8 @@ const DnDApp = () => {
   };
 
   const exportToYaml = () => {
-    // Naive export similar to before
-    const dqRules = [];
-    const cleanseRules = [];
-    nodes.forEach(node => {
-      // Skip groups/inputs, only find rules
-      // Note: In a real app we'd check parentNode to assign to correct stage. 
-      // For POC drag-and-drop export, we just list them.
-      const d = node.data;
-      if (d.label && d.label.startsWith('DQ')) {
-        dqRules.push({
-          id: d.ruleId || `rule_${node.id}`,
-          type: d.ruleType || 'check_unknown',
-          column: 'email'
-        });
-      } else if (d.label && d.label.startsWith('Cleanse')) {
-        cleanseRules.push({
-          type: d.ruleType || 'clean_unknown',
-          column: 'email'
-        });
-      }
-    });
-
-    const yamlObj = { stages: [] };
-    if (dqRules.length) yamlObj.stages.push({ name: "Generated DQ", type: "dq", rules: dqRules });
-    if (cleanseRules.length) yamlObj.stages.push({ name: "Generated Cleanse", type: "cleanse", rules: cleanseRules });
-
-    const yamlStr = yaml.dump(yamlObj);
+    // Basic export logic placeholder
+    const yamlStr = "stages: [] # Export logic would parse nodes here";
     const element = document.createElement("a");
     const file = new Blob([yamlStr], { type: 'text/yaml' });
     element.href = URL.createObjectURL(file);
@@ -169,113 +209,47 @@ const DnDApp = () => {
 
       const newNodes = [];
       const newEdges = [];
-      let prevStageNodeId = null;
+      let prevNodeId = 'input_node';
 
       // Add Input Node
       const inputId = 'input_node';
       newNodes.push({
         id: inputId,
-        type: 'input', // Use standard Input type which has Source handle
-        data: { label: 'Source: customers.csv' },
-        position: { x: 50, y: 300 },
-        style: {
-          background: '#fff',
-          border: '1px solid #333',
-          borderRadius: '8px',
-          width: 120,
-          padding: '10px',
-          fontSize: '12px',
-          textAlign: 'center',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-        }
+        type: 'inputSource',
+        data: { label: 'customers.csv' },
+        position: { x: 50, y: 300 }
       });
 
-      let currentX = 250;
+      let currentX = 350;
 
       // Loop stages
       pipeline.stages.forEach((stage, stageIdx) => {
-        const ruleCount = stage.rules ? stage.rules.length : 0;
-        const stageHeight = Math.max(100, ruleCount * 80 + 60);
-        const stageWidth = 280;
-        const stageY = 50;
+        const stageNodeId = `stage_${stageIdx}`;
 
-        // 1. Create Group Node (The Stage) - USING CUSTOM TYPE
-        const stageGroupId = `stage_${stageIdx}`;
-
-        // Calculate styles based on type
-        const isDq = stage.type === 'dq';
-        const borderColor = isDq ? '#3b82f6' : '#10b981';
-        const bgColor = isDq ? 'linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, rgba(255,255,255,0) 100%)' : 'linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(255,255,255,0) 100%)';
-
+        // Create Table Node (Single node for the whole stage)
         newNodes.push({
-          id: stageGroupId,
-          type: 'stageGroup', // Use our custom component
-          data: { label: stage.name }, // Pass label to custom component
-          position: { x: currentX, y: stageY },
-          style: {
-            width: stageWidth,
-            height: stageHeight,
-            background: bgColor,
-            borderTop: `4px solid ${borderColor}`,
-            borderLeft: '1px solid rgba(0,0,0,0.1)',
-            borderRight: '1px solid rgba(0,0,0,0.1)',
-            borderBottom: '1px solid rgba(0,0,0,0.1)',
-            borderRadius: '12px',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          id: stageNodeId,
+          type: 'stageTable',
+          data: {
+            label: stage.name,
+            type: stage.type,
+            rules: stage.rules || []
           },
-          // We don't use className for logic anymore, passed in style directly for granular control
+          position: { x: currentX, y: 100 },
         });
 
-        // Add connection
-        if (stageIdx === 0) {
-          // Input -> Stage 0
-          newEdges.push({
-            id: `e_input_${stageGroupId}`,
-            source: inputId,
-            target: stageGroupId,
-            animated: true,
-            style: { stroke: '#555', strokeWidth: 2 },
-            type: 'smoothstep'
-          });
-        } else {
-          // Prev Stage -> Curr Stage
-          newEdges.push({
-            id: `e_${prevStageNodeId}_${stageGroupId}`,
-            source: prevStageNodeId,
-            target: stageGroupId,
-            animated: true,
-            style: { stroke: '#555', strokeWidth: 2 },
-            type: 'smoothstep'
-          });
-        }
+        // Add Edge
+        newEdges.push({
+          id: `e_${prevNodeId}_${stageNodeId}`,
+          source: prevNodeId,
+          target: stageNodeId,
+          animated: true,
+          style: { stroke: '#94a3b8', strokeWidth: 2 },
+          type: 'smoothstep'
+        });
 
-        // 2. Create Rule Nodes (Children)
-        if (stage.rules) {
-          stage.rules.forEach((rule, ruleIdx) => {
-            const ruleLabel = `${rule.type}\n• ${rule.column}`;
-
-            newNodes.push({
-              id: `node_${stageIdx}_${ruleIdx}`,
-              type: 'default',
-              data: {
-                label: ruleLabel,
-                ...rule
-              },
-              position: { x: 20, y: 50 + (ruleIdx * 80) }, // Relative to Parent
-              parentNode: stageGroupId,
-              extent: 'parent',
-              style: {
-                width: 240,
-                fontSize: '11px',
-                background: 'rgba(255,255,255,0.8)'
-              }
-            });
-          });
-        }
-
-        prevStageNodeId = stageGroupId;
-        currentX += stageWidth + 100; // Gap between stages
+        prevNodeId = stageNodeId;
+        currentX += 400; // Gap between stages
       });
 
       setNodes(newNodes);
@@ -299,24 +273,37 @@ const DnDApp = () => {
       {showImport && (
         <div style={{
           position: 'absolute', top: 60, bottom: 0, right: 0, width: '400px',
-          background: 'white', borderLeft: '1px solid #ccc', zIndex: 10, padding: '20px',
-          display: 'flex', flexDirection: 'column', gap: '10px'
+          background: 'white', borderLeft: '1px solid #e2e8f0', zIndex: 10, padding: '24px',
+          display: 'flex', flexDirection: 'column', gap: '16px',
+          boxShadow: '-4px 0 16px rgba(0,0,0,0.05)'
         }}>
-          <h3>Paste YAML Config</h3>
+          <h3 style={{ margin: 0, color: '#1e293b' }}>Import Config</h3>
+          <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Paste your pipeline YAML below to visualize it.</p>
           <textarea
-            style={{ flex: 1, fontFamily: 'monospace' }}
+            style={{
+              flex: 1,
+              fontFamily: 'monospace',
+              padding: '12px',
+              border: '1px solid #cbd5e1',
+              borderRadius: '8px',
+              resize: 'none',
+              fontSize: '13px',
+              lineHeight: '1.4'
+            }}
             value={yamlInput}
             onChange={(e) => setYamlInput(e.target.value)}
-            placeholder="Paste context of pipeline.yaml here..."
+            placeholder="stages: ..."
           />
-          <button onClick={loadFromYaml}>Visualize</button>
-          <button onClick={() => setShowImport(false)} style={{ background: '#666' }}>Cancel</button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button onClick={loadFromYaml} style={{ flex: 1, background: '#2563eb' }}>Visualize Graph</button>
+            <button onClick={() => setShowImport(false)} style={{ background: 'transparent', border: '1px solid #cbd5e1', color: '#475569' }}>Cancel</button>
+          </div>
         </div>
       )}
 
       <div className="work-area">
         <div className="sidebar">
-          <div className="description">Drag nodes to the right pane.</div>
+          <div className="description">Drag Rules</div>
           <div className="dndnode input" onDragStart={(event) => onDragStart(event, 'DQ: Not Null')} draggable>DQ: Not Null</div>
           <div className="dndnode" onDragStart={(event) => onDragStart(event, 'DQ: Regex')} draggable>DQ: Regex</div>
           <div className="dndnode" onDragStart={(event) => onDragStart(event, 'Cleanse: Trim')} draggable>Cleanse: Trim</div>
@@ -335,10 +322,9 @@ const DnDApp = () => {
             onDragOver={onDragOver}
             nodeTypes={nodeTypes} // Register custom types
           >
-            <Controls />
+            <Controls showInteractive={false} />
             <MiniMap />
-            {/* Improved Background */}
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#C8C8C8" />
+            <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#cbd5e1" />
           </ReactFlow>
         </div>
       </div>
