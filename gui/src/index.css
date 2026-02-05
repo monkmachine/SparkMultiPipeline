@@ -2,9 +2,9 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
 }
 
 .app-container {
@@ -15,13 +15,16 @@ body {
 }
 
 .header {
-  height: 50px;
-  background: #333;
-  color: white;
+  height: 60px;
+  background: white;
+  border-bottom: 1px solid #eaeaea;
   display: flex;
-  align_items: center;
-  padding: 0 20px;
-  font-weight: bold;
+  align-items: center;
+  padding: 0 30px;
+  font-weight: 600;
+  font-size: 18px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  z-index: 10;
 }
 
 .work-area {
@@ -31,52 +34,100 @@ body {
 }
 
 .sidebar {
-  width: 250px;
-  background: #f5f5f5;
-  border-right: 1px solid #ddd;
-  padding: 10px;
+  width: 260px;
+  background: white;
+  border-right: 1px solid #eaeaea;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.02);
+  z-index: 5;
+}
+
+.description {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 10px;
 }
 
 .dndnode {
-  height: 40px;
-  border: 1px solid #777;
-  border-radius: 4px;
+  height: 44px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: white;
   cursor: grab;
   font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.dndnode:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  border-color: #ccc;
+}
+
+.dndnode.input {
+  border-left: 4px solid #333;
 }
 
 .reactflow-wrapper {
   flex: 1;
   height: 100%;
+  background-color: #fafafa;
 }
 
 .controls {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 100;
-  background: white;
   padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 button {
   cursor: pointer;
-  padding: 5px 10px;
-  background: #007bff;
+  padding: 8px 16px;
+  background: #2563eb;
   color: white;
   border: none;
-  border-radius: 3px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 13px;
+  transition: background 0.2s;
 }
 
 button:hover {
-  background: #0056b3;
+  background: #1d4ed8;
+}
+
+/* Custom Node Styles */
+.react-flow__node-group {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.react-flow__node-group.dq {
+    border-top: 4px solid #3b82f6; /* Blue */
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, rgba(255,255,255,0) 100%);
+}
+
+.react-flow__node-group.cleanse {
+    border-top: 4px solid #10b981; /* Green */
+    background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(255,255,255,0) 100%);
+}
+
+.react-flow__node-default {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-size: 12px;
+    width: auto;
+    min-width: 150px;
+    padding: 10px;
 }
